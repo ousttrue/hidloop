@@ -25,7 +25,6 @@ includedirs {
     BOOST_DIR,
 }
 libdirs {
-    BOOST_DIR.."/lib",
 }
 links {
 }

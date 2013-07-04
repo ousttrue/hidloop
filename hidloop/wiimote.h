@@ -1,12 +1,12 @@
 #pragma once
-#include "ionread.h"
+#include "icallback.h"
 #include <windows.h>
 #include "wiimote_state.h"
 #include <vector>
 
 namespace hid {
 
-class Wiimote: public IOnRead
+class Wiimote: public ICallback
 {
     enum IN_TYPE
     {
@@ -42,6 +42,7 @@ public:
     Wiimote();
     ~Wiimote();
     void onRead(const unsigned char *data, size_t size)override;
+    std::vector<unsigned char> onDestroy()override;
     std::vector<unsigned char> createData_EnableAccel(){ 
         return createData_SetReportType(IN_BUTTONS_ACCEL, false); 
     }

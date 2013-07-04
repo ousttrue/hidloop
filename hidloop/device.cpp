@@ -1,9 +1,25 @@
 #include "device.h"
+#include "icallback.h"
 
 
 namespace hid {
 
-bool Device::open(boost::asio::io_service &io_service, std::shared_ptr<IOnRead> callback)
+Device::Device(unsigned short vendorID, unsigned short productID)
+: m_vendorID(vendorID), m_productID(productID)
+{
+}
+
+Device::~Device()
+{
+    if(m_callback){
+        auto data=m_callback->onDestroy();
+        if(!data.empty()){
+            write(data);
+        }
+    }
+}
+
+bool Device::open(boost::asio::io_service &io_service, std::shared_ptr<ICallback> callback)
 {
     auto handle = CreateFile(m_path.c_str(), GENERIC_READ|GENERIC_WRITE,
             FILE_SHARE_READ,
@@ -14,8 +30,9 @@ bool Device::open(boost::asio::io_service &io_service, std::shared_ptr<IOnRead> 
     }
 
     m_stream=std::make_shared<boost::asio::windows::stream_handle>(io_service, handle);
+    m_callback=callback;
 
-    beginRead(callback);
+    beginRead();
 
     return true;
 }
@@ -37,11 +54,11 @@ void Device::write(std::vector<unsigned char> &data)
             });
 }
 
-void Device::beginRead(std::shared_ptr<IOnRead> callback)
+void Device::beginRead()
 {
     auto device=this;
     m_stream->async_read_some(boost::asio::buffer(m_buf, sizeof(m_buf)),
-            [callback, device](
+            [device](
                 const boost::system::error_code& error,
                 size_t bytes_transferred
                ){
@@ -55,11 +72,11 @@ void Device::beginRead(std::shared_ptr<IOnRead> callback)
             std::vector<unsigned char> tmp(device->m_buf, device->m_buf+bytes_transferred);
 
             // next
-            device->beginRead(callback);
+            device->beginRead();
 
             // callback
             if(!tmp.empty()){
-            callback->onRead(&tmp[0], tmp.size());
+            device->m_callback->onRead(&tmp[0], tmp.size());
             }
             }
     );

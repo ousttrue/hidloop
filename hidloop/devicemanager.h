@@ -7,6 +7,7 @@ namespace hid {
 typedef std::function<bool(unsigned short, unsigned short)> DetectDevice;
 
 class DeviceManagerImpl;
+class Device;
 class DeviceManager
 {
     std::unique_ptr<DeviceManagerImpl> m_impl;

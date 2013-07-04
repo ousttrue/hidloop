@@ -1,4 +1,5 @@
-#include "hidloop.h"
+#include "devicemanager.h"
+#include "device.h"
 
 #include <setupapi.h>
 #pragma comment(lib, "setupapi.lib")
@@ -36,7 +37,7 @@ namespace {
 namespace hid {
 
 
-static std::shared_ptr<hid::Device> processHandle(hid::DetectDevice detect, HANDLE handle)
+static std::shared_ptr<Device> processHandle(DetectDevice detect, HANDLE handle)
 {
     HIDD_ATTRIBUTES attrib;
     attrib.Size = sizeof(attrib);
@@ -49,7 +50,7 @@ static std::shared_ptr<hid::Device> processHandle(hid::DetectDevice detect, HAND
         return 0;
     }
 
-    return std::make_shared<hid::Device>(attrib.VendorID, attrib.ProductID);
+    return std::make_shared<Device>(attrib.VendorID, attrib.ProductID);
 }
 
 

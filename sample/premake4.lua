@@ -26,6 +26,7 @@ includedirs {
 }
 libdirs {
     BOOST_DIR.."/lib",
+    BOOST_DIR.."/stage/lib",
 }
 links {
     "hidloop",

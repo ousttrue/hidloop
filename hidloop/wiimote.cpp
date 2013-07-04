@@ -132,6 +132,11 @@ void Wiimote::onRead(const unsigned char *data, size_t size)
     }
 }
 
+std::vector<unsigned char> Wiimote::onDestroy()
+{
+    return createData_SetReportType(IN_BUTTONS, false); 
+}
+
 void Wiimote::ParseAccel(const unsigned char* buff)
 {
     BYTE raw_x = buff[3];
