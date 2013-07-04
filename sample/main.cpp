@@ -62,7 +62,9 @@ int main(int argc, char **argv)
 	auto wii=std::make_shared<hid::Wiimote>();
     device->open(io_service, wii);
 
-    wii->setOnRead([wii](){ showStatus(std::cout, wii->getState()); });
+    wii->setOnStatus([](const wiimote_state &state){ 
+            showStatus(std::cout, state); 
+            });
 
     io_service.run();
 

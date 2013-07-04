@@ -149,8 +149,8 @@ void Wiimote::onRead(std::shared_ptr<Device> device, const unsigned char *data, 
             break;
     }
 
-    if(m_onRead){
-        m_onRead();
+    if(m_onStatus){
+        m_onStatus(m_state);
     }
 }
 
