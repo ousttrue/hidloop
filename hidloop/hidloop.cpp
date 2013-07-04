@@ -12,6 +12,7 @@
 } \
 
 #include <vector>
+#include <list>
 
 
 namespace {
@@ -28,79 +29,115 @@ namespace {
 
     typedef BOOL __stdcall HIDD_GETATTRIBUTES(HANDLE HidDeviceObject, PHIDD_ATTRIBUTES Attributes);
     HIDD_GETATTRIBUTES *HidD_GetAttributes=0;
+
+
 }
 
 
 namespace hid {
 
-bool initialize()
+
+static std::shared_ptr<hid::Device> processHandle(hid::DetectDevice detect, HANDLE handle)
 {
-    HMODULE hModule= LoadLibrary( "HID.DLL" );
-    GET_PROC(HidD_GetHidGuid, HIDD_GETHIDGUID);
-    GET_PROC(HidD_GetAttributes, HIDD_GETATTRIBUTES);
-
-    return true;
-}
-
-
-static void processHandle(std::list<Device> &list, DetectDevice detect, HANDLE handle)
-{
-    // get the device attributes
     HIDD_ATTRIBUTES attrib;
     attrib.Size = sizeof(attrib);
     if(!HidD_GetAttributes(handle, &attrib))
     {
-        return;
+        return 0;
     }
 
     if(!detect(attrib.VendorID, attrib.ProductID)){
-        return;
+        return 0;
     }
 
-    list.push_back(Device(attrib.VendorID, attrib.ProductID));
+    return std::make_shared<hid::Device>(attrib.VendorID, attrib.ProductID);
 }
 
 
-void search(std::list<Device> &list, DetectDevice detect)
+class DeviceManagerImpl
 {
-    GUID guid;
-    if(!HidD_GetHidGuid(&guid)){
-        return;
-    }
+    std::list<std::shared_ptr<hid::Device>> m_devices;
 
-    auto hDevInfo=SetupDiGetClassDevs(&guid, NULL, NULL, DIGCF_INTERFACEDEVICE | DIGCF_PRESENT);
-    if (hDevInfo==INVALID_HANDLE_VALUE){
-        return;
-    }
-
-    SP_DEVICE_INTERFACE_DATA data;
-	data.cbSize=sizeof(data);
-    std::vector<BYTE> buf;
-    for(DWORD i=0; SetupDiEnumDeviceInterfaces(hDevInfo, NULL, &guid, i, &data); ++i)
+public:
+    DeviceManagerImpl()
     {
-        DWORD size=0;
-        SetupDiGetDeviceInterfaceDetail(hDevInfo, &data, NULL, 0, &size, NULL);
-        if(size==0){
-            // error ?
-            continue;
-        }
-
-        buf.resize(size);
-        auto detail = (SP_DEVICE_INTERFACE_DETAIL_DATA*) &buf[0];
-        detail->cbSize = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA);
-        if(!SetupDiGetDeviceInterfaceDetail(hDevInfo, &data, detail, size, &size, NULL)){
-            return;
-        }
-
-        auto handle = CreateFile(detail->DevicePath, 0, FILE_SHARE_READ|FILE_SHARE_WRITE,
-                NULL, OPEN_EXISTING, 0, NULL);
-		if(handle == INVALID_HANDLE_VALUE) {
-            return;
-        }
-        processHandle(list, detect, handle);
-        CloseHandle(handle);
+        initialize();
     }
+
+    ~DeviceManagerImpl()
+    {
+        // FreeLibrary();
+    }
+
+    void search(hid::DetectDevice detect)
+    {
+        GUID guid;
+        if(!HidD_GetHidGuid(&guid)){
+            return;
+        }
+
+        auto hDevInfo=SetupDiGetClassDevs(&guid, NULL, NULL, DIGCF_INTERFACEDEVICE | DIGCF_PRESENT);
+        if (hDevInfo==INVALID_HANDLE_VALUE){
+            return;
+        }
+
+        SP_DEVICE_INTERFACE_DATA data;
+        data.cbSize=sizeof(data);
+        std::vector<BYTE> buf;
+        for(DWORD i=0; SetupDiEnumDeviceInterfaces(hDevInfo, NULL, &guid, i, &data); ++i)
+        {
+            DWORD size=0;
+            SetupDiGetDeviceInterfaceDetail(hDevInfo, &data, NULL, 0, &size, NULL);
+            if(size==0){
+                // error ?
+                continue;
+            }
+
+            buf.resize(size);
+            auto detail = (SP_DEVICE_INTERFACE_DETAIL_DATA*) &buf[0];
+            detail->cbSize = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA);
+            if(!SetupDiGetDeviceInterfaceDetail(hDevInfo, &data, detail, size, &size, NULL)){
+                return;
+            }
+
+            auto handle = CreateFile(detail->DevicePath, 0, FILE_SHARE_READ|FILE_SHARE_WRITE,
+                    NULL, OPEN_EXISTING, 0, NULL);
+            if(handle == INVALID_HANDLE_VALUE) {
+                return;
+            }
+            auto device=processHandle(detect, handle);
+            if(device){
+                device->setPath(detail->DevicePath);
+                m_devices.push_back(device);
+            }
+            CloseHandle(handle);
+        }
+    }
+
+private:
+    bool initialize()
+    {
+        HMODULE hModule= LoadLibrary( "HID.DLL" );
+        GET_PROC(HidD_GetHidGuid, HIDD_GETHIDGUID);
+        GET_PROC(HidD_GetAttributes, HIDD_GETATTRIBUTES);
+
+		return true;
+    }
+};
+
+
+DeviceManager::DeviceManager()
+    : m_impl(new DeviceManagerImpl)
+{
 }
 
+DeviceManager::~DeviceManager()
+{
+}
+
+void DeviceManager::search(DetectDevice detect)
+{
+    m_impl->search(detect);
+}
 
 }

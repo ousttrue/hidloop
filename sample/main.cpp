@@ -36,15 +36,9 @@ static bool detectOculus(unsigned short vendor_id, unsigned short product_id)
 
 int main(int argc, char **argv)
 {
-    if(!hid::initialize()){
-        return 1;
-    }
+    hid::DeviceManager devMan;
 
-    std::list<hid::Device> list;
-    hid::search(list, detectOculus);
-    if(list.empty()){
-        return 2;
-    }
+    devMan.search(detectOculus);
 
     return 0;
 }
