@@ -134,45 +134,6 @@ private:
 
 
 //////////////////////////////////////////////////////////////////////////////
-// Device
-//////////////////////////////////////////////////////////////////////////////
-bool Device::open(boost::asio::io_service &io_service)
-{
-    auto handle = CreateFile(m_path.c_str(), GENERIC_READ|GENERIC_WRITE,
-            FILE_SHARE_READ,
-            NULL, OPEN_EXISTING,
-            FILE_FLAG_OVERLAPPED, NULL);
-    if(handle == INVALID_HANDLE_VALUE) {
-        return false;
-    }
-
-    m_stream=std::make_shared<boost::asio::windows::stream_handle>(io_service, handle);
-
-    beginRead();
-
-    return true;
-}
-
-void Device::beginRead()
-{
-    m_stream->async_read_some(boost::asio::buffer(m_buf, sizeof(m_buf)),
-            [&](
-                const boost::system::error_code& error,
-                size_t bytes_transferred
-              ){
-
-            if(error){
-            std::cout  << error.message() << std::endl;
-            return;
-            }
-
-            std::cout << "read: " << bytes_transferred << std::endl;
-            beginRead();
-            }
-            );
-}
-
-//////////////////////////////////////////////////////////////////////////////
 // DeviceManager
 //////////////////////////////////////////////////////////////////////////////
 DeviceManager::DeviceManager()
