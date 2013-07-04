@@ -5,6 +5,34 @@
 static const int REPORT_LENGTH=22;
 
 
+#define SHOW_BUTTON(BUTTON) \
+    #BUTTON << "=" << state.Button.BUTTON() \
+
+
+
+static void showStatus(std::ostream &os, wiimote_state &state)
+{
+    os
+        /*
+        << SHOW_BUTTON(A)
+        << "," << SHOW_BUTTON(B)
+        << "," << SHOW_BUTTON(Plus)
+        << "," << SHOW_BUTTON(Home)
+        << "," << SHOW_BUTTON(Minus)
+        << "," << SHOW_BUTTON(One)
+        << "," << SHOW_BUTTON(Two)
+        << "," << SHOW_BUTTON(Up)
+        << "," << SHOW_BUTTON(Down)
+        << "," << SHOW_BUTTON(Left)
+        << "," << SHOW_BUTTON(Right)
+        */
+        << ",X=" << (int)state.Acceleration.RawX
+        << ",Y=" << (int)state.Acceleration.RawY
+        << ",Z=" << (int)state.Acceleration.RawZ
+        << std::endl
+        ;
+}
+
 namespace hid {
 
 // static
@@ -81,21 +109,20 @@ void Wiimote::onRead(const unsigned char *data, size_t size)
     {
         case IN_BUTTONS:
             {
-                std::cout << "IN_BUTTONS" << std::endl;
+                //std::cout << "IN_BUTTONS" << std::endl;
                 unsigned short bits = *(unsigned short*)(data+1) & m_state.Button.ALL;
-                /*
-                if(m_state.Button.Bits!=bits){
-                    // button status changed
-                }
-                */
                 m_state.Button.Bits=bits;
-                showButtonStatus();
+                showStatus(std::cout, m_state);
             }
             break;
 
         case IN_BUTTONS_ACCEL:
             {
-                std::cout << "IN_BUTTONS_ACCEL: " << d << std::endl;
+                //std::cout << "IN_BUTTONS_ACCEL: " << d << std::endl;
+                unsigned short bits = *(unsigned short*)(data+1) & m_state.Button.ALL;
+                m_state.Button.Bits=bits;
+                ParseAccel(data);
+                showStatus(std::cout, m_state);
             }
             break;
 
@@ -105,25 +132,41 @@ void Wiimote::onRead(const unsigned char *data, size_t size)
     }
 }
 
-#define SHOW(BUTTON) \
-    #BUTTON << "=" << m_state.Button.BUTTON() \
-
-void Wiimote::showButtonStatus()
+void Wiimote::ParseAccel(const unsigned char* buff)
 {
-    std::cout
-        << SHOW(A)
-        << ", " << SHOW(B)
-        << ", " << SHOW(Plus)
-        << ", " << SHOW(Home)
-        << ", " << SHOW(Minus)
-        << ", " << SHOW(One)
-        << ", " << SHOW(Two)
-        << ", " << SHOW(Up)
-        << ", " << SHOW(Down)
-        << ", " << SHOW(Left)
-        << ", " << SHOW(Right)
-        << std::endl
-        ;
+    BYTE raw_x = buff[3];
+    BYTE raw_y = buff[4];
+    BYTE raw_z = buff[5];
+
+    m_state.Acceleration.RawX = raw_x;
+    m_state.Acceleration.RawY = raw_y;
+    m_state.Acceleration.RawZ = raw_z;
+
+    // avoid / 0.0 when calibration data hasn't arrived yet
+    //if(m_state.CalibrationInfo.X0)
+    if(true)
+    {
+        m_state.Acceleration.X =
+            ((float)m_state.Acceleration.RawX  - m_state.CalibrationInfo.X0) / 
+            ((float)m_state.CalibrationInfo.XG - m_state.CalibrationInfo.X0);
+        m_state.Acceleration.Y =
+            ((float)m_state.Acceleration.RawY  - m_state.CalibrationInfo.Y0) /
+            ((float)m_state.CalibrationInfo.YG - m_state.CalibrationInfo.Y0);
+        m_state.Acceleration.Z =
+            ((float)m_state.Acceleration.RawZ  - m_state.CalibrationInfo.Z0) /
+            ((float)m_state.CalibrationInfo.ZG - m_state.CalibrationInfo.Z0);
+    }
+    else{
+        m_state.Acceleration.X =
+            m_state.Acceleration.Y =
+            m_state.Acceleration.Z = 0.f;
+    }
+
+    /*
+    // see if we can estimate the orientation from the current values
+    if(EstimateOrientationFrom(m_state.Acceleration))
+        changed |= ORIENTATION_CHANGED;
+        */
 }
 
 }

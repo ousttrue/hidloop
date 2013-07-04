@@ -43,12 +43,12 @@ public:
     ~Wiimote();
     void onRead(const unsigned char *data, size_t size)override;
     std::vector<unsigned char> createData_EnableAccel(){ 
-        return createData_SetReportType(IN_BUTTONS_ACCEL, true); 
+        return createData_SetReportType(IN_BUTTONS_ACCEL, false); 
     }
     std::vector<unsigned char> createData_SetReportType(IN_TYPE type, bool continuous);
 
 private:
-    void showButtonStatus();
+    void ParseAccel(const unsigned char* buff);
 };
 
 }

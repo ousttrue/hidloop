@@ -106,6 +106,10 @@ struct wiimote_state
             float	 Roll;	// "
             // float Yaw;	
         } Orientation;
+
+        acceleration()
+            : RawX(0), RawY(0), RawZ(0)
+        {}
     } Acceleration;
 
     // IR camera state:
