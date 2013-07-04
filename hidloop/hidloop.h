@@ -7,18 +7,18 @@ namespace hid
 {
     class Device
     {
-        unsigned long m_vendorID;
-        unsigned long m_productID;
+        unsigned short m_vendorID;
+        unsigned short m_productID;
 
     public:
-        Device(unsigned long vendorID, unsigned long productID)
+        Device(unsigned short vendorID, unsigned short productID)
             : m_vendorID(vendorID), m_productID(productID)
             {
             }
     };
 
 
-    typedef std::function<bool(unsigned long, unsigned long)> DetectDevice;
+    typedef std::function<bool(unsigned short, unsigned short)> DetectDevice;
 
 
     bool initialize();
