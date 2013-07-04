@@ -56,36 +56,6 @@ static const int REGISTER_MOTIONPLUS_INIT		= 0x4a600f0;
 static const int REGISTER_MOTIONPLUS_ENABLE		= 0x4a600fe;
 
 
-#define SHOW_BUTTON(BUTTON) \
-    #BUTTON << "=" << state.Button.BUTTON() \
-
-
-static void showStatus(std::ostream &os, wiimote_state &state)
-{
-    os
-        /*
-        << SHOW_BUTTON(A)
-        << "," << SHOW_BUTTON(B)
-        << "," << SHOW_BUTTON(Plus)
-        << "," << SHOW_BUTTON(Home)
-        << "," << SHOW_BUTTON(Minus)
-        << "," << SHOW_BUTTON(One)
-        << "," << SHOW_BUTTON(Two)
-        << "," << SHOW_BUTTON(Up)
-        << "," << SHOW_BUTTON(Down)
-        << "," << SHOW_BUTTON(Left)
-        << "," << SHOW_BUTTON(Right)
-        */
-        << ",X=" << (int)state.Acceleration.RawX
-        << ",Y=" << (int)state.Acceleration.RawY
-        << ",Z=" << (int)state.Acceleration.RawZ
-        << ",X=" << state.Acceleration.X
-        << ",Y=" << state.Acceleration.Y
-        << ",Z=" << state.Acceleration.Z
-        << std::endl
-        ;
-}
-
 static void send_SetReportType(std::shared_ptr<hid::Device> device, IN_TYPE type, bool continuous=false)
 {
     std::vector<unsigned char> buff(REPORT_LENGTH, 0);
@@ -178,7 +148,10 @@ void Wiimote::onRead(std::shared_ptr<Device> device, const unsigned char *data, 
             std::cout << "unknown data: " << type << std::endl;
             break;
     }
-    showStatus(std::cout, m_state);
+
+    if(m_onRead){
+        m_onRead();
+    }
 }
 
 void Wiimote::onDestroy(std::shared_ptr<Device> device)

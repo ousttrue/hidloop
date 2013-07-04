@@ -15,6 +15,37 @@ static bool detectOculus(unsigned short vendor_id, unsigned short product_id)
 }
 
 
+#define SHOW_BUTTON(BUTTON) \
+    #BUTTON << "=" << state.Button.BUTTON() \
+
+
+static void showStatus(std::ostream &os, const wiimote_state &state)
+{
+    os
+        /*
+        << SHOW_BUTTON(A)
+        << "," << SHOW_BUTTON(B)
+        << "," << SHOW_BUTTON(Plus)
+        << "," << SHOW_BUTTON(Home)
+        << "," << SHOW_BUTTON(Minus)
+        << "," << SHOW_BUTTON(One)
+        << "," << SHOW_BUTTON(Two)
+        << "," << SHOW_BUTTON(Up)
+        << "," << SHOW_BUTTON(Down)
+        << "," << SHOW_BUTTON(Left)
+        << "," << SHOW_BUTTON(Right)
+        */
+        << ",X=" << (int)state.Acceleration.RawX
+        << ",Y=" << (int)state.Acceleration.RawY
+        << ",Z=" << (int)state.Acceleration.RawZ
+        << ",X=" << state.Acceleration.X
+        << ",Y=" << state.Acceleration.Y
+        << ",Z=" << state.Acceleration.Z
+        << std::endl
+        ;
+}
+
+
 int main(int argc, char **argv)
 {
     boost::asio::io_service io_service;
@@ -30,6 +61,8 @@ int main(int argc, char **argv)
 
 	auto wii=std::make_shared<hid::Wiimote>();
     device->open(io_service, wii);
+
+    wii->setOnRead([wii](){ showStatus(std::cout, wii->getState()); });
 
     io_service.run();
 
