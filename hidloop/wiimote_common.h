@@ -1,3 +1,5 @@
+#pragma once
+#include <windows.h>
 // _______________________________________________________________________________
 //
 //	 - WiiYourself! - native C++ Wiimote library  v1.15 RC

@@ -1,13 +1,40 @@
+#include <boost/asio.hpp>
 #include "wiimote.h"
+#include "device.h"
 #include <iostream>
+#include <mmsystem.h>
 
+
+enum IN_TYPE
+{
+    IN_BUTTONS				 = 0x30,
+    IN_BUTTONS_ACCEL		 = 0x31,
+    IN_BUTTONS_ACCEL_IR		 = 0x33,
+    IN_BUTTONS_ACCEL_EXT	 = 0x35,
+    IN_BUTTONS_ACCEL_IR_EXT	 = 0x37,
+    IN_BUTTONS_BALANCE_BOARD = 0x32,
+};
+
+enum OUT_TYPE
+{
+    OUT_NONE			= 0x00,
+    OUT_LEDs			= 0x11,
+    OUT_TYPE			= 0x12,
+    OUT_IR				= 0x13,
+    OUT_SPEAKER_ENABLE	= 0x14,
+    OUT_STATUS			= 0x15,
+    OUT_WRITEMEMORY		= 0x16,
+    OUT_READMEMORY		= 0x17,
+    OUT_SPEAKER_DATA	= 0x18,
+    OUT_SPEAKER_MUTE	= 0x19,
+    OUT_IR2				= 0x1a,
+};
 
 static const int REPORT_LENGTH=22;
 
 
 #define SHOW_BUTTON(BUTTON) \
     #BUTTON << "=" << state.Button.BUTTON() \
-
 
 
 static void showStatus(std::ostream &os, wiimote_state &state)
@@ -32,6 +59,41 @@ static void showStatus(std::ostream &os, wiimote_state &state)
         << std::endl
         ;
 }
+
+static std::vector<unsigned char> createData_SetReportType(IN_TYPE type, bool continuous)
+{
+    /*
+    _ASSERT(IsConnected());
+    if(!IsConnected())
+        return;
+        */
+
+    /*
+    switch(type)
+    {
+        case IN_BUTTONS_ACCEL_IR:
+            EnableIR(wiimote_state::ir::EXTENDED);
+            break;
+        case IN_BUTTONS_ACCEL_IR_EXT:
+            EnableIR(wiimote_state::ir::BASIC);
+            break;
+        default:
+            DisableIR();
+            break;
+    }
+    */
+
+    std::vector<unsigned char> buff(REPORT_LENGTH, 0);
+    buff[0] = (BYTE)OUT_TYPE;
+    buff[1] = (continuous ? 0x04 : 0x00); //| GetRumbleBit();
+    buff[2] = (BYTE)type;
+    return  buff;
+}
+
+static std::vector<unsigned char> createData_EnableAccel(){ 
+    return createData_SetReportType(IN_BUTTONS_ACCEL, false); 
+}
+
 
 namespace hid {
 
@@ -58,7 +120,7 @@ bool Wiimote::detect(unsigned short vendor_id, unsigned short product_id)
 
 
 Wiimote::Wiimote()
-    : m_inType(IN_BUTTONS), m_lastTime(0)
+    : m_lastTime(0)
 {
 }
 
@@ -66,39 +128,11 @@ Wiimote::~Wiimote()
 {
 }
 
-std::vector<unsigned char> Wiimote::createData_SetReportType(
-        Wiimote::IN_TYPE type, bool continuous)
+void Wiimote::onConnect(std::shared_ptr<Device> device)
 {
-    /*
-    _ASSERT(IsConnected());
-    if(!IsConnected())
-        return;
-        */
-    m_inType=type;
-
-    /*
-    switch(type)
-    {
-        case IN_BUTTONS_ACCEL_IR:
-            EnableIR(wiimote_state::ir::EXTENDED);
-            break;
-        case IN_BUTTONS_ACCEL_IR_EXT:
-            EnableIR(wiimote_state::ir::BASIC);
-            break;
-        default:
-            DisableIR();
-            break;
-    }
-    */
-
-    std::vector<unsigned char> buff(REPORT_LENGTH, 0);
-    buff[0] = (BYTE)OUT_TYPE;
-    buff[1] = (continuous ? 0x04 : 0x00); //| GetRumbleBit();
-    buff[2] = (BYTE)type;
-    return  buff;
 }
 
-void Wiimote::onRead(const unsigned char *data, size_t size)
+void Wiimote::onRead(std::shared_ptr<Device> device, const unsigned char *data, size_t size)
 {
     auto now=timeGetTime();
     auto d=now-m_lastTime;
@@ -132,9 +166,16 @@ void Wiimote::onRead(const unsigned char *data, size_t size)
     }
 }
 
-std::vector<unsigned char> Wiimote::onDestroy()
+void Wiimote::enableAccel(std::shared_ptr<Device> device)
 {
-    return createData_SetReportType(IN_BUTTONS, false); 
+    auto data=createData_EnableAccel();
+    device->write(data);
+}
+
+void Wiimote::onDestroy(std::shared_ptr<Device> device)
+{
+    auto data=createData_SetReportType(IN_BUTTONS, false);
+    device->write(data); 
 }
 
 void Wiimote::ParseAccel(const unsigned char* buff)
@@ -148,8 +189,7 @@ void Wiimote::ParseAccel(const unsigned char* buff)
     m_state.Acceleration.RawZ = raw_z;
 
     // avoid / 0.0 when calibration data hasn't arrived yet
-    //if(m_state.CalibrationInfo.X0)
-    if(true)
+    if(m_state.CalibrationInfo.X0)
     {
         m_state.Acceleration.X =
             ((float)m_state.Acceleration.RawX  - m_state.CalibrationInfo.X0) / 

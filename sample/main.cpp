@@ -17,6 +17,8 @@ static bool detectOculus(unsigned short vendor_id, unsigned short product_id)
 
 int main(int argc, char **argv)
 {
+    boost::asio::io_service io_service;
+
     hid::DeviceManager devMan;
 
 	devMan.search(&hid::Wiimote::detect);
@@ -26,13 +28,10 @@ int main(int argc, char **argv)
        return 1; 
     }
 
-    boost::asio::io_service io_service;
-
 	auto wii=std::make_shared<hid::Wiimote>();
     device->open(io_service, wii);
 
-    auto data=wii->createData_EnableAccel();
-    device->write(data);
+	wii->enableAccel(device);
 
     io_service.run();
 

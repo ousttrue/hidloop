@@ -8,7 +8,7 @@
 
 namespace hid {
 
-class Device
+class Device: public std::enable_shared_from_this<Device>
 {
     unsigned short m_vendorID;
     unsigned short m_productID;

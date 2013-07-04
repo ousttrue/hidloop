@@ -12,10 +12,7 @@ Device::Device(unsigned short vendorID, unsigned short productID)
 Device::~Device()
 {
     if(m_callback){
-        auto data=m_callback->onDestroy();
-        if(!data.empty()){
-            write(data);
-        }
+        m_callback->onDestroy(shared_from_this());
     }
 }
 
@@ -31,6 +28,8 @@ bool Device::open(boost::asio::io_service &io_service, std::shared_ptr<ICallback
 
     m_stream=std::make_shared<boost::asio::windows::stream_handle>(io_service, handle);
     m_callback=callback;
+
+    m_callback->onConnect(shared_from_this());
 
     beginRead();
 
@@ -56,7 +55,7 @@ void Device::write(std::vector<unsigned char> &data)
 
 void Device::beginRead()
 {
-    auto device=this;
+    auto device=shared_from_this();
     m_stream->async_read_some(boost::asio::buffer(m_buf, sizeof(m_buf)),
             [device](
                 const boost::system::error_code& error,
@@ -76,7 +75,7 @@ void Device::beginRead()
 
             // callback
             if(!tmp.empty()){
-            device->m_callback->onRead(&tmp[0], tmp.size());
+            device->m_callback->onRead(device, &tmp[0], tmp.size());
             }
             }
     );
