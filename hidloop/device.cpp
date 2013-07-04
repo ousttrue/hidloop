@@ -34,19 +34,16 @@ void Device::beginRead(std::shared_ptr<IOnRead> callback)
             return;
             }
 
-            if(bytes_transferred>0){
-
-            /*
             // copy
-            std::vector<char> tmp(m_buf, m_buf+bytes_transferred);
-            callback(&tmp[0], tmp.size());
-            */
-
-            callback->onRead(device->m_buf, bytes_transferred);
-            }
+            std::vector<char> tmp(device->m_buf, device->m_buf+bytes_transferred);
 
             // next
             device->beginRead(callback);
+
+            // callback
+            if(!tmp.empty()){
+            callback->onRead(&tmp[0], tmp.size());
+            }
             }
     );
 }
