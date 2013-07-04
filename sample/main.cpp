@@ -31,8 +31,6 @@ int main(int argc, char **argv)
 	auto wii=std::make_shared<hid::Wiimote>();
     device->open(io_service, wii);
 
-	wii->enableAccel(device);
-
     io_service.run();
 
     return 0;

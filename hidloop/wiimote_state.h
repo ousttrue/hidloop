@@ -30,6 +30,11 @@ struct wiimote_state
     {
         BYTE X0, Y0, Z0;
         BYTE XG, YG, ZG;
+
+        calibration_info()
+            : X0(0), Y0(0), Z0(0),
+            XG(0), YG(0), ZG(0)
+		{}
     } CalibrationInfo;
 
     // button state:

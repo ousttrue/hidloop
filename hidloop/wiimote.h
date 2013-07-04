@@ -17,9 +17,9 @@ public:
     void onConnect(std::shared_ptr<Device> device)override;
     void onRead(std::shared_ptr<Device> device, const unsigned char *data, size_t size)override;
     void onDestroy(std::shared_ptr<Device> device)override;
-    void enableAccel(std::shared_ptr<Device> device);
-
 private:
+    int ParseReadAddress(std::shared_ptr<Device> device, const unsigned char* buff);
+    void ParseButtons(const unsigned char* buff);
     void ParseAccel(const unsigned char* buff);
 };
 
