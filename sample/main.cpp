@@ -1,5 +1,6 @@
+#include <boost/asio.hpp>
 #include <hidloop.h>
-
+//#include <boost/asio/windows/stream_handle.hpp>
 
 static bool match(unsigned short vendor_id, unsigned short product_id)
 {
@@ -36,9 +37,21 @@ static bool detectOculus(unsigned short vendor_id, unsigned short product_id)
 
 int main(int argc, char **argv)
 {
-    hid::DeviceManager devMan;
 
-    devMan.search(detectOculus);
+    hid::DeviceManager devMan;
+    //devMan.search(detectOculus);
+	devMan.search(detectWiimote);
+
+    auto device=devMan.getDevice(0);
+    if(!device){
+       return 1; 
+    }
+
+    boost::asio::io_service io_service;
+    //boost::asio::io_service::work work(io_service);
+    device->open(io_service);
+
+    io_service.run();
 
     return 0;
 }

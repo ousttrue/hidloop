@@ -9,6 +9,8 @@ kind "StaticLib"
 --kind "ConsoleApp"
 --kind "WindowedApp"
 
+BOOST_DIR=os.getenv("BOOST_DIR")
+
 files {
     "*.cpp", "*.h",
 }
@@ -19,8 +21,11 @@ buildoptions {
 defines {
 }
 includedirs {
+    "../hidloop",
+    BOOST_DIR,
 }
 libdirs {
+    BOOST_DIR.."/lib",
 }
 links {
 }

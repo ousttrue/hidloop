@@ -1,5 +1,4 @@
 #include "hidloop.h"
-#include <windows.h>
 
 #include <setupapi.h>
 #pragma comment(lib, "setupapi.lib")
@@ -56,7 +55,7 @@ static std::shared_ptr<hid::Device> processHandle(hid::DetectDevice detect, HAND
 
 class DeviceManagerImpl
 {
-    std::list<std::shared_ptr<hid::Device>> m_devices;
+    std::vector<std::shared_ptr<Device>> m_devices;
 
 public:
     DeviceManagerImpl()
@@ -69,7 +68,15 @@ public:
         // FreeLibrary();
     }
 
-    void search(hid::DetectDevice detect)
+    std::shared_ptr<Device> getDevice(size_t index)
+    {
+        if(index<m_devices.size()){
+            return m_devices[index];
+        }
+        return 0;
+    }
+
+    void search(DetectDevice detect)
     {
         GUID guid;
         if(!HidD_GetHidGuid(&guid)){
@@ -126,6 +133,48 @@ private:
 };
 
 
+//////////////////////////////////////////////////////////////////////////////
+// Device
+//////////////////////////////////////////////////////////////////////////////
+bool Device::open(boost::asio::io_service &io_service)
+{
+    auto handle = CreateFile(m_path.c_str(), GENERIC_READ|GENERIC_WRITE,
+            FILE_SHARE_READ,
+            NULL, OPEN_EXISTING,
+            FILE_FLAG_OVERLAPPED, NULL);
+    if(handle == INVALID_HANDLE_VALUE) {
+        return false;
+    }
+
+    m_stream=std::make_shared<boost::asio::windows::stream_handle>(io_service, handle);
+
+    beginRead();
+
+    return true;
+}
+
+void Device::beginRead()
+{
+    m_stream->async_read_some(boost::asio::buffer(m_buf, sizeof(m_buf)),
+            [&](
+                const boost::system::error_code& error,
+                size_t bytes_transferred
+              ){
+
+            if(error){
+            std::cout  << error.message() << std::endl;
+            return;
+            }
+
+            std::cout << "read: " << bytes_transferred << std::endl;
+            beginRead();
+            }
+            );
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// DeviceManager
+//////////////////////////////////////////////////////////////////////////////
 DeviceManager::DeviceManager()
     : m_impl(new DeviceManagerImpl)
 {
@@ -138,6 +187,11 @@ DeviceManager::~DeviceManager()
 void DeviceManager::search(DetectDevice detect)
 {
     m_impl->search(detect);
+}
+
+std::shared_ptr<Device> DeviceManager::getDevice(size_t index)
+{
+    return m_impl->getDevice(index);
 }
 
 }
