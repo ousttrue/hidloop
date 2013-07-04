@@ -29,5 +29,6 @@ libdirs {
 }
 links {
     "hidloop",
+    "winmm",
 }
 

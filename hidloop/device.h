@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <memory>
+#include <vector>
 #include <boost/asio.hpp>
 #include "ionread.h"
 
@@ -23,6 +24,7 @@ public:
 
     void setPath(const std::string &path){ m_path=path; }
     bool open(boost::asio::io_service &io, std::shared_ptr<IOnRead> callback);
+    void write(std::vector<unsigned char> &data);
 
 private:
     void beginRead(std::shared_ptr<IOnRead> callback);

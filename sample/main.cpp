@@ -31,6 +31,9 @@ int main(int argc, char **argv)
 	auto wii=std::make_shared<hid::Wiimote>();
     device->open(io_service, wii);
 
+    auto data=wii->createData_EnableAccel();
+    device->write(data);
+
     io_service.run();
 
     return 0;

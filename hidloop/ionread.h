@@ -6,7 +6,7 @@ class IOnRead
 {
 public:
     virtual ~IOnRead(){}    
-    virtual void onRead(const char *data, size_t size)=0;
+    virtual void onRead(const unsigned char *data, size_t size)=0;
 };
 
 }

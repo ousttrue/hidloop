@@ -20,6 +20,23 @@ bool Device::open(boost::asio::io_service &io_service, std::shared_ptr<IOnRead> 
     return true;
 }
 
+void Device::write(std::vector<unsigned char> &data)
+{
+    m_stream->async_write_some(boost::asio::buffer(&data[0], data.size()), [](
+                const boost::system::error_code& error,
+                size_t bytes_transferred
+                ){
+
+            if(error){
+            std::cout  << error.message() << std::endl;
+            return;
+            }
+
+            std::cout << "write " << bytes_transferred << " bytes" << std::endl;
+
+            });
+}
+
 void Device::beginRead(std::shared_ptr<IOnRead> callback)
 {
     auto device=this;
@@ -35,7 +52,7 @@ void Device::beginRead(std::shared_ptr<IOnRead> callback)
             }
 
             // copy
-            std::vector<char> tmp(device->m_buf, device->m_buf+bytes_transferred);
+            std::vector<unsigned char> tmp(device->m_buf, device->m_buf+bytes_transferred);
 
             // next
             device->beginRead(callback);
