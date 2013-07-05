@@ -35,12 +35,20 @@ static void showStatus(std::ostream &os, const wiimote_state &state)
         << "," << SHOW_BUTTON(Left)
         << "," << SHOW_BUTTON(Right)
         */
+        /*
         << ",X=" << (int)state.Acceleration.RawX
         << ",Y=" << (int)state.Acceleration.RawY
         << ",Z=" << (int)state.Acceleration.RawZ
         << ",X=" << state.Acceleration.X
         << ",Y=" << state.Acceleration.Y
         << ",Z=" << state.Acceleration.Z
+        */
+        << ",X=" << (int)state.MotionPlus.Raw.Yaw
+        << ",Y=" << (int)state.MotionPlus.Raw.Pitch
+        << ",Z=" << (int)state.MotionPlus.Raw.Roll
+        << ",X=" << state.MotionPlus.Speed.Yaw
+        << ",Y=" << state.MotionPlus.Speed.Pitch
+        << ",Z=" << state.MotionPlus.Speed.Roll
         << std::endl
         ;
 }

@@ -345,18 +345,32 @@ struct wiimote_state
             short Yaw;
             short Pitch;
             short Roll;
+            sensors_raw()
+                : Yaw(0), Pitch(0), Roll(0)
+                {
+                }
         };
         struct sensors_f
         {
             float Yaw;
             float Pitch;
             float Roll;
+            sensors_f()
+                : Yaw(0), Pitch(0), Roll(0)
+                {
+                }
         };
 
         // state:
         sensors_raw	Raw;
         sensors_f	Speed;
+
     } MotionPlus;
+
+    wiimote_state()
+    {
+        Clear(true);
+    }
 
     // ---- internal use only ----
 protected: 
