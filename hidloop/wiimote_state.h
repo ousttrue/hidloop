@@ -22,6 +22,7 @@
 #include "wiimote_common.h"
 #include <assert.h>
 
+
 // wiimote_state (contains the Wiimote and Extension data and settings)
 struct wiimote_state
 {
@@ -177,20 +178,6 @@ struct wiimote_state
         speaker_freq Freq;
         BYTE		  Volume;
     } Speaker;
-
-    // the extension plugged into the Wiimote (if any)
-    enum extension_type
-    {
-        NONE = 0,
-        NUNCHUK,
-        CLASSIC,
-        GH3_GHWT_GUITAR, // GH3 or GHWT Guitar (treated as Classic)
-        GHWT_DRUMS,		 // not yet used
-        BALANCE_BOARD,
-        MOTION_PLUS,
-        PARTIALLY_INSERTED,
-    };
-    extension_type	ExtensionType;
 
     // joystick struct (shared between Nunchuk & Classic Controller)
     struct joystick

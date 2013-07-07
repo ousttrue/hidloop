@@ -74,7 +74,7 @@ void Device::beginRead()
 
         // callback
         if(!tmp.empty()){
-            device->m_callback->onRead(device.get(), &tmp[0], tmp.size());
+            device->m_callback->onRead(device.get(), tmp);
         }
     };
     m_stream->async_read_some(
