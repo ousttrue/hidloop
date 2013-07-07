@@ -2,7 +2,14 @@
 #include <string>
 #include <memory>
 #include <vector>
+
+#ifdef _WIN32
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x0501
+#endif
 #include <boost/asio.hpp>
+#endif
+
 #include "icallback.h"
 
 

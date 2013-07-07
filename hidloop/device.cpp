@@ -12,7 +12,7 @@ Device::Device(unsigned short vendorID, unsigned short productID)
 Device::~Device()
 {
     if(m_callback){
-        m_callback->onDestroy(shared_from_this());
+        m_callback->onDestroy(this);
     }
 }
 
@@ -29,7 +29,7 @@ bool Device::open(boost::asio::io_service &io_service, std::shared_ptr<ICallback
     m_stream=std::make_shared<boost::asio::windows::stream_handle>(io_service, handle);
     m_callback=callback;
 
-    m_callback->onConnect(shared_from_this());
+    m_callback->onConnect(this);
 
     beginRead();
 
@@ -38,46 +38,49 @@ bool Device::open(boost::asio::io_service &io_service, std::shared_ptr<ICallback
 
 void Device::write(std::vector<unsigned char> &data)
 {
-    m_stream->async_write_some(boost::asio::buffer(&data[0], data.size()), [](
-                const boost::system::error_code& error,
-                size_t bytes_transferred
-                ){
+    auto on_write=[](
+            const boost::system::error_code& error,
+            size_t bytes_transferred
+            ){
 
-            if(error){
+        if(error){
             std::cout  << error.message() << std::endl;
             return;
-            }
-
-            std::cout << "write " << bytes_transferred << " bytes" << std::endl;
-
-            });
+        }
+        //std::cout << "write " << bytes_transferred << " bytes" << std::endl;
+    };
+    m_stream->async_write_some(
+            boost::asio::buffer(&data[0], data.size()), 
+            on_write);
 }
 
 void Device::beginRead()
 {
     auto device=shared_from_this();
-    m_stream->async_read_some(boost::asio::buffer(m_buf, sizeof(m_buf)),
-            [device](
-                const boost::system::error_code& error,
-                size_t bytes_transferred
-               ){
+    auto on_read=[device](
+            const boost::system::error_code& error,
+            size_t bytes_transferred
+            ){
 
-            if(error){
+        if(error){
             std::cout  << error.message() << std::endl;
             return;
-            }
+        }
 
-            // copy
-            std::vector<unsigned char> tmp(device->m_buf, device->m_buf+bytes_transferred);
+        // copy
+        std::vector<unsigned char> tmp(device->m_buf, device->m_buf+bytes_transferred);
 
-            // next
-            device->beginRead();
+        // next
+        device->beginRead();
 
-            // callback
-            if(!tmp.empty()){
-            device->m_callback->onRead(device, &tmp[0], tmp.size());
-            }
-            }
+        // callback
+        if(!tmp.empty()){
+            device->m_callback->onRead(device.get(), &tmp[0], tmp.size());
+        }
+    };
+    m_stream->async_read_some(
+            boost::asio::buffer(m_buf, sizeof(m_buf)),
+            on_read
     );
 }
 

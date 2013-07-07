@@ -56,7 +56,7 @@ static const int REGISTER_MOTIONPLUS_INIT		= 0x4a600f0;
 static const int REGISTER_MOTIONPLUS_ENABLE		= 0x4a600fe;
 
 
-static void send_SetReportType(std::shared_ptr<hid::Device> device, IN_TYPE type, bool continuous=false)
+static void send_SetReportType(hid::Device *device, IN_TYPE type, bool continuous=false)
 {
     std::vector<unsigned char> buff(REPORT_LENGTH, 0);
     buff[0] = (BYTE)OUT_TYPE;
@@ -65,7 +65,7 @@ static void send_SetReportType(std::shared_ptr<hid::Device> device, IN_TYPE type
     device->write(buff);
 }
 
-static void send_ReadAddress(std::shared_ptr<hid::Device> device, int address, short size)
+static void send_ReadAddress(hid::Device *device, int address, short size)
 {
     // asynchronous
     std::vector<unsigned char> buff(REPORT_LENGTH, 0);
@@ -79,7 +79,7 @@ static void send_ReadAddress(std::shared_ptr<hid::Device> device, int address, s
     device->write(buff);
 }
 
-static void send_WriteAddress(std::shared_ptr<hid::Device> device, int address, BYTE size, 
+static void send_WriteAddress(hid::Device *device, int address, BYTE size, 
         const BYTE* buff)
 {
     // asynchronous
@@ -94,13 +94,13 @@ static void send_WriteAddress(std::shared_ptr<hid::Device> device, int address, 
     device->write(write);
 }
 
-static void send_WriteAddress(std::shared_ptr<hid::Device> device, int address, BYTE data)
+static void send_WriteAddress(hid::Device *device, int address, BYTE data)
 { 
     // write a single BYTE to a wiimote address or register
     send_WriteAddress(device, address, 1, &data); 
 }
 
-static void send_RequestStatusReport(std::shared_ptr<hid::Device> device)
+static void send_RequestStatusReport(hid::Device *device)
 {
     // (this can be called before we're fully connected)
     std::vector<unsigned char> buff(REPORT_LENGTH, 0);
@@ -143,7 +143,7 @@ Wiimote::~Wiimote()
 {
 }
 
-void Wiimote::initializeExtension(std::shared_ptr<hid::Device> device)
+void Wiimote::initializeExtension(hid::Device *device)
 {
     // motion plus
     //send_ReadAddress(device, REGISTER_MOTIONPLUS_DETECT, 6);
@@ -167,12 +167,12 @@ void Wiimote::initializeExtension(std::shared_ptr<hid::Device> device)
     readMemory(device, REGISTER_EXTENSION_TYPE , 6);
 }
 
-void Wiimote::onConnect(std::shared_ptr<Device> device)
+void Wiimote::onConnect(Device *device)
 {
     // reset
-	send_SetReportType(device, IN_BUTTONS, false);
+	//send_SetReportType(device, IN_BUTTONS, false);
 
-    send_RequestStatusReport(device);
+    //send_RequestStatusReport(device);
 
     // calibration
     readMemory(device, REGISTER_CALIBRATION, 7);
@@ -190,7 +190,7 @@ void Wiimote::onConnect(std::shared_ptr<Device> device)
 	*/
 }
 
-void Wiimote::onRead(std::shared_ptr<Device> device, const unsigned char *data, size_t size)
+void Wiimote::onRead(Device *device, const unsigned char *data, size_t size)
 {
     auto now=timeGetTime();
     auto d=now-m_lastTime;
@@ -241,12 +241,12 @@ void Wiimote::onRead(std::shared_ptr<Device> device, const unsigned char *data, 
     }
 }
 
-void Wiimote::onDestroy(std::shared_ptr<Device> device)
+void Wiimote::onDestroy(Device *device)
 {
     send_SetReportType(device, IN_BUTTONS, false);
 }
 
-int Wiimote::ParseStatus(std::shared_ptr<Device> device, const unsigned char *buff)
+int Wiimote::ParseStatus(Device *device, const unsigned char *buff)
 {
 	int changed=0;
 
@@ -603,7 +603,7 @@ int Wiimote::ParseExtension(const unsigned char *buff, unsigned offset)
     return changed;
 }
 
-int Wiimote::ParseReadAddress(std::shared_ptr<Device> device, const unsigned char* buff)
+int Wiimote::ParseReadAddress(Device *device, const unsigned char* buff)
 {
     // decode the address that was queried:
     int address = buff[4]<<8 | buff[5];
@@ -938,33 +938,33 @@ void Wiimote::ParseAccel(const unsigned char* buff)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-void Wiimote::writeMemory(std::shared_ptr<Device> device, int addresses, unsigned char data)
+void Wiimote::writeMemory(Device *device, int addresses, unsigned char data)
 {
     m_memoryQueue.push_back(MemoryData(MEMORY_WRITE, addresses, data));
     dequeue(device);
 }
 
-void Wiimote::onWriteMemory(std::shared_ptr<Device> device)
+void Wiimote::onWriteMemory(Device *device)
 {
     assert(m_currentMemory==MEMORY_WRITE);
     m_currentMemory=MEMORY_NONE;
     dequeue(device);
 }
 
-void Wiimote::readMemory(std::shared_ptr<Device> device, int addresses, unsigned char data)
+void Wiimote::readMemory(Device *device, int addresses, unsigned char data)
 {
     m_memoryQueue.push_back(MemoryData(MEMORY_READ, addresses, data));
     dequeue(device);
 }
 
-void Wiimote::onReadMemory(std::shared_ptr<Device> device)
+void Wiimote::onReadMemory(Device *device)
 {
     assert(m_currentMemory==MEMORY_READ);
     m_currentMemory=MEMORY_NONE;
     dequeue(device);
 }
 
-void Wiimote::dequeue(std::shared_ptr<Device> device)
+void Wiimote::dequeue(Device *device)
 {
 	if(m_memoryQueue.empty()){
 		return;

@@ -70,9 +70,10 @@ int main(int argc, char **argv)
 	auto wii=std::make_shared<hid::Wiimote>();
     device->open(io_service, wii);
 
-    wii->setOnStatus([](const wiimote_state &state){ 
-            showStatus(std::cout, state); 
-            });
+    auto on_status=[](const wiimote_state &state){ 
+        showStatus(std::cout, state); 
+    };
+    wii->setOnStatus(on_status);
 
     io_service.run();
 

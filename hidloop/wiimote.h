@@ -19,15 +19,15 @@ public:
     Wiimote();
     ~Wiimote();
     const wiimote_state &getState()const{ return m_state; }
-    void onConnect(std::shared_ptr<Device> device)override;
-    void onRead(std::shared_ptr<Device> device, const unsigned char *data, size_t size)override;
-    void onDestroy(std::shared_ptr<Device> device)override;
+    void onConnect(Device *device)override;
+    void onRead(Device *device, const unsigned char *data, size_t size)override;
+    void onDestroy(Device *device)override;
     void setOnStatus(std::function<void(const wiimote_state &)> onStatus){ m_onStatus=onStatus; }
 
 private:
-    int ParseStatus(std::shared_ptr<Device> device, const unsigned char *buff);
+    int ParseStatus(Device *device, const unsigned char *buff);
     int ParseExtension(const unsigned char *buff, unsigned offset);
-    int ParseReadAddress(std::shared_ptr<Device> device, const unsigned char* buff);
+    int ParseReadAddress(Device *device, const unsigned char* buff);
     void ParseButtons(const unsigned char* buff);
     void ParseAccel(const unsigned char* buff);
 
@@ -50,12 +50,12 @@ private:
 	};
 	std::list<MemoryData> m_memoryQueue;
 	MEMORY_TYPE m_currentMemory;
-	void readMemory(std::shared_ptr<Device> device, int address, unsigned char data);
-	void writeMemory(std::shared_ptr<Device> device, int address, unsigned char data);
-	void dequeue(std::shared_ptr<Device> device);
-	void onReadMemory(std::shared_ptr<Device> device);
-	void onWriteMemory(std::shared_ptr<Device> device);
-    void initializeExtension(std::shared_ptr<hid::Device> device);
+	void readMemory(Device *device, int address, unsigned char data);
+	void writeMemory(Device *device, int address, unsigned char data);
+	void dequeue(Device *device);
+	void onReadMemory(Device *device);
+	void onWriteMemory(Device *device);
+    void initializeExtension(hid::Device *device);
 };
 
 }
