@@ -1,11 +1,13 @@
 #pragma once
 #include "icallback.h"
 #include "wiimote_state.h"
+#include "memorytask.h"
 #include <vector>
 #include <functional>
 #include <list>
 
 namespace hid {
+
 
 class Wiimote: public ICallback
 {
@@ -19,6 +21,7 @@ public:
     Wiimote();
     ~Wiimote();
     const wiimote_state &getState()const{ return m_state; }
+    wiimote_state &getState(){ return m_state; }
     void onConnect(Device *device)override;
     void onRead(Device *device, const unsigned char *data, size_t size)override;
     void onDestroy(Device *device)override;
@@ -27,35 +30,15 @@ public:
 private:
     int ParseStatus(Device *device, const unsigned char *buff);
     int ParseExtension(const unsigned char *buff, unsigned offset);
-    int ParseReadAddress(Device *device, const unsigned char* buff);
     void ParseButtons(const unsigned char* buff);
     void ParseAccel(const unsigned char* buff);
 
-	// memory read/write
-	enum MEMORY_TYPE {
-		MEMORY_NONE,
-		MEMORY_READ,
-		MEMORY_WRITE,
-	};
-	struct MemoryData
-	{
-
-		MEMORY_TYPE type;
-		int address;
-		unsigned char data;
-
-		MemoryData(MEMORY_TYPE _type, int _address, unsigned char _data)
-			: type(_type), address(_address), data(_data)
-		{}
-	};
-	std::list<MemoryData> m_memoryQueue;
-	MEMORY_TYPE m_currentMemory;
-	void readMemory(Device *device, int address, unsigned char data);
-	void writeMemory(Device *device, int address, unsigned char data);
-	void dequeue(Device *device);
-	void onReadMemory(Device *device);
-	void onWriteMemory(Device *device);
-    void initializeExtension(hid::Device *device);
+    std::list<std::shared_ptr<IMemoryTask>> m_memoryQueue;
+    std::shared_ptr<IMemoryTask> m_currentTask;
+    void pushMemoryTask(Device *device, std::shared_ptr<IMemoryTask> task);
+    void dequeue(Device *device);
+    void onMemory(Device *device, const unsigned char *data);
+    void initializeExtension(Device *device);
 };
 
 }

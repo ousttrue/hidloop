@@ -29,9 +29,8 @@ bool Device::open(boost::asio::io_service &io_service, std::shared_ptr<ICallback
     m_stream=std::make_shared<boost::asio::windows::stream_handle>(io_service, handle);
     m_callback=callback;
 
-    m_callback->onConnect(this);
-
     beginRead();
+    m_callback->onConnect(this);
 
     return true;
 }
