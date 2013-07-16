@@ -1,7 +1,7 @@
 #include "memorytask.h"
 #include "device.h"
 #include "wiimote.h"
-#include "wiimote_const.h"
+#include "wiimote/const.h"
 #include "extension.h"
 #include <vector>
 

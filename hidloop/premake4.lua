@@ -12,7 +12,8 @@ kind "StaticLib"
 BOOST_DIR=os.getenv("BOOST_DIR")
 
 files {
-    "*.cpp", "*.h",
+    "**.cpp", 
+    "**.h",
 }
 flags {
 }

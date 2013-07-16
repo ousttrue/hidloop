@@ -19,7 +19,7 @@
 #ifndef _WIIMOTE_STATE_H
 # define _WIIMOTE_STATE_H
 
-#include "wiimote_common.h"
+#include "wiimote/common.h"
 #include <assert.h>
 
 

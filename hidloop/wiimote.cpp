@@ -1,7 +1,7 @@
 #include <boost/asio.hpp>
 #include "wiimote.h"
 #include "device.h"
-#include "wiimote_const.h"
+#include "wiimote/const.h"
 #include <iostream>
 #include <mmsystem.h>
 

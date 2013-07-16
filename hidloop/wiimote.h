@@ -1,8 +1,8 @@
 #pragma once
 #include "icallback.h"
-#include "wiimote_state.h"
-#include "memorytask.h"
-#include "extension.h"
+#include "wiimote/state.h"
+#include "wiimote/memorytask.h"
+#include "wiimote/extension.h"
 #include <vector>
 #include <functional>
 #include <list>
