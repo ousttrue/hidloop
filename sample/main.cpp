@@ -1,18 +1,5 @@
 #include <boost/asio.hpp>
 #include <hidloop.h>
-//#include <boost/asio/windows/stream_handle.hpp>
-
-static bool match(unsigned short vendor_id, unsigned short product_id)
-{
-    return true;
-}
-
-
-
-static bool detectOculus(unsigned short vendor_id, unsigned short product_id)
-{
-    return vendor_id==0x2833 && product_id==0x0001;
-}
 
 
 #define SHOW_BUTTON(BUTTON) \
@@ -60,20 +47,15 @@ int main(int argc, char **argv)
 
     hid::DeviceManager devMan;
 
-	devMan.search(&hid::wiimote::Wiimote::detect);
+	devMan.search(&hid::oculus::detect);
 
     auto device=devMan.getDevice(0);
     if(!device){
        return 1; 
     }
 
-	auto wii=std::make_shared<hid::wiimote::Wiimote>();
-    device->open(io_service, wii);
-
-    auto on_status=[](const wiimote_state &state){ 
-        showStatus(std::cout, state); 
-    };
-    wii->setOnStatus(on_status);
+	auto callback=std::make_shared<hid::oculus::Oculus>();
+    device->open(io_service, callback);
 
     io_service.run();
 

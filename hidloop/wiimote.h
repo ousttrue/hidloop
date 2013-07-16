@@ -9,6 +9,8 @@
 
 namespace hid { namespace wiimote {
 
+bool detect(unsigned short vendor_id, unsigned short product_id);
+
 
 class IExtension;
 class Wiimote: public ICallback
@@ -19,7 +21,6 @@ class Wiimote: public ICallback
     bool bMotionPlusDetected;
 
 public:
-    static bool detect(unsigned short vendor_id, unsigned short product_id);
     Wiimote();
     ~Wiimote();
     const wiimote_state &getState()const{ return m_state; }

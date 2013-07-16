@@ -28,9 +28,7 @@ static void send_RequestStatusReport(hid::Device *device)
 namespace hid { namespace wiimote {
 
 
-
-// static
-bool Wiimote::detect(unsigned short vendor_id, unsigned short product_id)
+bool detect(unsigned short vendor_id, unsigned short product_id)
 {
     if(vendor_id!=0x057e){
         return false;
