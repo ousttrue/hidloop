@@ -1,5 +1,6 @@
 #include "device.h"
 #include "icallback.h"
+#include "hid.h"
 
 
 namespace hid {
@@ -25,7 +26,33 @@ bool Device::open(boost::asio::io_service &io_service, std::shared_ptr<ICallback
     if(handle == INVALID_HANDLE_VALUE) {
         return false;
     }
+    m_handle=std::shared_ptr<void>(handle, &::CloseHandle);
 
+    // get hid caps
+    {
+        HIDP_PREPARSED_DATA* preparsedData=0;
+        if (!HidD_GetPreparsedData(handle, &preparsedData)){
+            return false;
+        }
+        std::shared_ptr<HIDP_PREPARSED_DATA> parsed(
+                preparsedData, HidD_FreePreparsedData);
+
+        HIDP_CAPS caps;
+        if (HidP_GetCaps(preparsedData, &caps) != HIDP_STATUS_SUCCESS)
+        {
+            return false;
+        }
+        std::cout << "Usage: " << caps.Usage << std::endl;
+        std::cout << "UsagePage: " <<  caps.UsagePage << std::endl;
+        std::cout << "InputReportByteLength: " 
+            << caps.InputReportByteLength << std::endl;
+        std::cout << "OutputReportByteLength: " 
+            <<  caps.OutputReportByteLength << std::endl;
+        std::cout << "FeatureReportByteLength: "
+            <<  caps.FeatureReportByteLength << std::endl;
+    }
+
+    // setup stream
     m_stream=std::make_shared<boost::asio::windows::stream_handle>(io_service, handle);
     m_callback=callback;
 

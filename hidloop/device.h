@@ -23,6 +23,7 @@ class Device: public std::enable_shared_from_this<Device>
     char m_buf[1024];
     std::shared_ptr<boost::asio::windows::stream_handle> m_stream;
     std::shared_ptr<ICallback> m_callback;
+    std::shared_ptr<void> m_handle;
 
 public:
     Device(unsigned short vendorID, unsigned short productID);

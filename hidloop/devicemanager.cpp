@@ -1,37 +1,8 @@
 #include "devicemanager.h"
 #include "device.h"
-
-#include <setupapi.h>
-#pragma comment(lib, "setupapi.lib")
-
-#define GET_PROC(name, type){ \
-    name = (type*)GetProcAddress(hModule, #name); \
-    if(!name){ \
-        return false; \
-    } \
-} \
-
+#include "hid.h"
 #include <vector>
 #include <list>
-
-
-namespace {
-
-    typedef struct _HIDD_ATTRIBUTES {
-        ULONG   Size;            // = sizeof (struct _HIDD_ATTRIBUTES)
-        USHORT  VendorID;
-        USHORT  ProductID;
-        USHORT  VersionNumber;
-    } HIDD_ATTRIBUTES, *PHIDD_ATTRIBUTES;
-
-    typedef BOOL __stdcall HIDD_GETHIDGUID(GUID *pGuid);
-    HIDD_GETHIDGUID *HidD_GetHidGuid;
-
-    typedef BOOL __stdcall HIDD_GETATTRIBUTES(HANDLE HidDeviceObject, PHIDD_ATTRIBUTES Attributes);
-    HIDD_GETATTRIBUTES *HidD_GetAttributes=0;
-
-
-}
 
 
 namespace hid {
@@ -125,9 +96,7 @@ public:
 private:
     bool initialize()
     {
-        HMODULE hModule= LoadLibrary( "HID.DLL" );
-        GET_PROC(HidD_GetHidGuid, HIDD_GETHIDGUID);
-        GET_PROC(HidD_GetAttributes, HIDD_GETATTRIBUTES);
+        ::load_hid_funcs();
 
 		return true;
     }
