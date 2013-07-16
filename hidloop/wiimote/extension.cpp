@@ -2,7 +2,7 @@
 #include "wiimote.h"
 
 
-namespace hid {
+namespace hid { namespace wiimote {
 
 
 class MotionPlusExtension: public IExtension
@@ -97,4 +97,4 @@ std::shared_ptr<IExtension> IExtension::Create(QWORD type)
     return 0;
 }
 
-}
+}}

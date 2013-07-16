@@ -3,9 +3,12 @@
 #include <vector>
 
 
-namespace hid {
-
+namespace hid { 
+    
 class Device;
+    
+namespace wiimote {
+
 class Wiimote;
 class IMemoryTask
 {
@@ -30,4 +33,4 @@ public:
     static std::shared_ptr<IMemoryTask> Create_ReadExtensionCalibrationTask();
 };
 
-}
+}}

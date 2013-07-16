@@ -2,7 +2,7 @@
 #include "device.h"
 #include "wiimote.h"
 #include "wiimote/const.h"
-#include "extension.h"
+#include "wiimote/extension.h"
 #include <vector>
 
 
@@ -22,7 +22,7 @@ static const int REGISTER_MOTIONPLUS_INIT		= 0x4a600f0;
 static const int REGISTER_MOTIONPLUS_ENABLE		= 0x4a600fe;
 
 
-namespace hid {
+namespace hid { namespace wiimote {
 
 
 class IWriteMemoryTask: public IMemoryTask
@@ -190,4 +190,4 @@ std::shared_ptr<IMemoryTask> IMemoryTask::Create_ReadExtensionCalibrationTask()
     return std::make_shared<ReadExtensionCalibrationTask>();
 }
 
-}
+}}

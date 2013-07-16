@@ -7,7 +7,7 @@
 #endif
 
 
-namespace hid {
+namespace hid { namespace wiimote {
 
 class Wiimote;
 class IExtension
@@ -20,4 +20,4 @@ public:
     static std::shared_ptr<IExtension> Create(QWORD type);
 };
 
-}
+}}

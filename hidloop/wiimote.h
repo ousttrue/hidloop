@@ -7,7 +7,7 @@
 #include <functional>
 #include <list>
 
-namespace hid {
+namespace hid { namespace wiimote {
 
 
 class IExtension;
@@ -30,7 +30,6 @@ public:
     void setOnStatus(std::function<void(const wiimote_state &)> onStatus){ m_onStatus=onStatus; }
 
 private:
-    // IExtension
     std::shared_ptr<IExtension> m_extension;
 public:
     void setExtension(std::shared_ptr<IExtension> extension){ m_extension=extension; }
@@ -50,4 +49,4 @@ private:
     void onMemory(Device *device, std::vector<unsigned char> &buff);
 };
 
-}
+}}

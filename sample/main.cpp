@@ -60,14 +60,14 @@ int main(int argc, char **argv)
 
     hid::DeviceManager devMan;
 
-	devMan.search(&hid::Wiimote::detect);
+	devMan.search(&hid::wiimote::Wiimote::detect);
 
     auto device=devMan.getDevice(0);
     if(!device){
        return 1; 
     }
 
-	auto wii=std::make_shared<hid::Wiimote>();
+	auto wii=std::make_shared<hid::wiimote::Wiimote>();
     device->open(io_service, wii);
 
     auto on_status=[](const wiimote_state &state){ 

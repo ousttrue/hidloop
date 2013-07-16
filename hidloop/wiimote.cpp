@@ -25,7 +25,7 @@ static void send_RequestStatusReport(hid::Device *device)
 }
 
 
-namespace hid {
+namespace hid { namespace wiimote {
 
 
 
@@ -276,4 +276,4 @@ void Wiimote::onMemory(Device *device, std::vector<unsigned char> &buff)
 	dequeue(device);
 }
 
-}
+}}
